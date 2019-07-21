@@ -10,10 +10,7 @@ XmlManager::XmlManager()
 		XMLPlatformUtils::Initialize();
 		m_xmlDocument	= nullptr;
 		m_domImpl		= DOMImplementationRegistry::getDOMImplementation(nullptr);
-		//m_domParser		= ((DOMImplementationLS*)m_domImpl)->createLSParser(DOMImplementationLS::MODE_SYNCHRONOUS, 0);
 		m_domParser = new XercesDOMParser();
-		//m_domConfig		= m_domParser->getDomConfig();
-		//m_domConfig->setParameter(XMLUni::fgXercesSchema, true);
 	}
 	catch (...)
 	{
@@ -26,38 +23,58 @@ XmlManager::XmlManager()
 	m_domConfig->setParameter(XMLUni::fgDOMNamespaces, true);
 	m_domConfig->setParameter(XMLUni::fgDOMDisallowDoctype, false);
 	m_domConfig->setParameter(XMLUni::fgXercesHandleMultipleImports, true);*/
-	m_domParser->setValidationScheme(XercesDOMParser::Val_Auto);
-	//m_domParser.set1.setDoNamespaces(true);
+	//m_domParser->setValidationScheme(XercesDOMParser::Val_Auto);
+	//m_domParser->setDoNamespaces(true);
+	//m_domParser->setDoSchema(true);
+	////m_domParser->setLoadExternalDTD(false);
+	//m_domParser->setIncludeIgnorableWhitespace(true);
+	//m_domParser->setValidationConstraintFatal(true);
+
+	//m_domParser.set1.setDoNamespaces(tr ue);
 	//m_domParser.setDoSchema(true);
 	//m_domParser.setValidationSchemaFullChecking(true);
 	//m_domConfig->setParameter(XMLUni::fgDOMWRTWhitespaceInElementContent, false);
-	
-	/*m_domConfig->setParameter(XMLUni::fgDOMNamespaces, doNamespaces);
-	m_domConfig->setParameter(XMLUni::fgXercesSchema, doSchema);
-	m_domConfig->setParameter(XMLUni::fgXercesHandleMultipleImports, true);
-	m_domConfig->setParameter(XMLUni::fgXercesSchemaFullChecking, schemaFullChecking);
-	m_domConfig->setParameter(XMLUni::fgDOMDisallowDoctype, disallowDoctype);*/
 }
 
 
 XmlManager::~XmlManager()
 {
-//	m_domParser->release();
+	delete m_domParser;
+	m_domParser = nullptr;
+
 	XMLPlatformUtils::Terminate();
 }
 
 
-void XmlManager::tempSetup()
+void XmlManager::tempSetup(XmlParserErrorHandler& errorHandler)
 {
-	//if (m_domParser->loadGrammar("C:/xml/wacSmall.xsd", Grammar::SchemaGrammarType) == nullptr)
-	//	std::cout << "Couldn't load schema" << std::endl;
+	//m_domParser->setErrorHandler(&errorHandler);
+	//DOMErrorHandler* errHandler = new DOMErrorHandler();
+	//m_domParser->setErrorHandler(errHandler);
+	
+	if (m_domParser->loadGrammar("C:/xml/wacSmall.xsd", Grammar::SchemaGrammarType) == nullptr)
+		std::cout << "Couldn't load schema" << std::endl;
+	else {
+		std::cout << "Schema loaded!\n";
+	}
+	m_domParser->setErrorHandler(&errorHandler);
+	m_domParser->setValidationScheme(XercesDOMParser::Val_Auto);
+	m_domParser->setDoNamespaces(true);
+	m_domParser->setDoSchema(true);
+	//m_domParser->setIncludeIgnorableWhitespace(true);
+	m_domParser->setValidationConstraintFatal(false);
+	m_domParser->setHandleMultipleImports(true);
+	m_domParser->setValidationSchemaFullChecking(true);
+	//m_domParser->setExternalSchemaLocation("file://C:/xml/wacSmall.xsd");
+
 }
 
 
 bool XmlManager::loadXmlFile(std::string filename)
 {
 	//m_xmlDocument = m_domParser->parseURI( filename.c_str() );
-	m_domParser->parse()
+	m_domParser->parse(filename.c_str());
+	m_xmlDocument = m_domParser->getDocument();
 	return false;
 }
 
@@ -66,7 +83,6 @@ void XmlManager::closeXmlFile()
 {
 	m_domParser->resetDocumentPool();
 }
-
 DOMNode* XmlManager::getDocumentRoot()
 {
 	if (m_xmlDocument != nullptr)
@@ -157,8 +173,17 @@ void XmlManager::_treeAction(DOMNode* rootNode, int level, const std::function <
 			textFound = true;
 			_treeAction(curChild, level, f);
 		}
+		//else
+			//std::cout << "ignored whitespace\n";
 
 
 		curChild = curChild->getNextSibling();
 	}
+}
+
+int XmlManager::getXsdErrorCount()
+{
+	int errorCount = m_domParser->getErrorCount();
+	auto eh = m_domParser->getErrorHandler();
+	return errorCount;
 }

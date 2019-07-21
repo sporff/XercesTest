@@ -16,12 +16,13 @@ public:
 
 	void treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f);
 	void printTree();
+	int getXsdErrorCount();
 
-	void tempSetup();
+	void tempSetup(XmlParserErrorHandler& errorHandler);
 
 private:
 	DOMImplementation	*m_domImpl;
-	XercesDOMParser			*m_domParser;
+	XercesDOMParser		*m_domParser;
 	DOMConfiguration	*m_domConfig;
 	DOMDocument			*m_xmlDocument;
 

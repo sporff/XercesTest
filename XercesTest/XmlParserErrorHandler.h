@@ -8,7 +8,8 @@ public:
 	~XmlParserErrorHandler();
 
 private:
-	/*void reportParseException(const SAXParseException& ex)
+private:
+	void reportParseException(const SAXParseException& ex)
 	{
 		char* msg = XMLString::transcode(ex.getMessage());
 		fprintf(stderr, "at line %llu column %llu, %s\n",
@@ -34,6 +35,7 @@ public:
 
 	void resetErrors()
 	{
-	}*/
+		std::cout << "Reset\n";
+	}
 };
 

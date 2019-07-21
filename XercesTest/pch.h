@@ -29,7 +29,10 @@
 #include "xercesc/dom/DOMAttr.hpp"
 #include "xercesc/sax/ErrorHandler.hpp"
 #include "xercesc/parsers/XercesDOMParser.hpp""
+#include <xercesc/sax/SAXParseException.hpp>
 
 using namespace xercesc;
+
+#include "XmlParserErrorHandler.h"
 
 #endif //PCH_H

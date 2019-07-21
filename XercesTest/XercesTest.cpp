@@ -11,7 +11,9 @@ using namespace xercesc;
 int main()
 {
 	XmlManager xmlManager;
-	xmlManager.tempSetup();
+
+	XmlParserErrorHandler parser;
+	xmlManager.tempSetup(parser);
 
 	xmlManager.loadXmlFile("C:/xml/wacSmall.xml");
 
@@ -43,7 +45,9 @@ int main()
 			std::cout << XMLString::transcode(nodeList->item(i)->getNodeName()) << std::endl;
 	}*/
 
-	xmlManager.printTree();
+	//xmlManager.printTree();
+
+	std::cout << "Error count: " << xmlManager.getXsdErrorCount() << "\n";
 
     std::cout << " "; 
 }
