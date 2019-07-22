@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "XmlManager.h"
 
+// test commit
 using namespace xercesc;
 
 XmlManager::XmlManager()
