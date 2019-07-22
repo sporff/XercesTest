@@ -5,50 +5,43 @@ using namespace xercesc;
 class XmlManager
 {
 public:
+	inline static const std::string EMPTY_STRING = "";
 	inline static const std::string NODENAME_PARENTTEMPLATE = "ParentTemplate";
 	inline static const std::string NODENAME_TEMPLATENAME = "TemplateName";
 
 	XmlManager();
 	~XmlManager();
 
-	// XML file
+	// General utils
+	static std::string ConvertXMLCh(const XMLCh* xmlChString);
+
+	// XML file operations
 	bool loadXmlFile(std::string filename);
+	//bool saveXmlFile();
 	void closeXmlFile();
 
-	// Document helpers
+	// XML Document
 	DOMNode* getDocumentRoot();
-	DOMNode* getFirstNamedChild(std::string nodeName);
+	DOMNode* getFirstChildNamed(std::string nodeName);
+	std::string getXPath(DOMNode* parent, DOMNode* child);
+	std::optional<std::string> getTemplateText(DOMNode* node, std::string templateName);
+
+	// XML XPath
+	std::vector<DOMNode*> executeXPathQuery(DOMNode* rootNode, std::string query);
+	DOMNode* executeXPathQuery_singleReturn(DOMNode* rootNode, std::string query);
 	
-	
-	/*std::string getXPath(DOMNode* parent, DOMNode* child) {
-		if (child == parent)
-			return "";
-
-		DOMNode* childParent = child->getParentNode();
-		if (childParent == nullptr)
-			return nullptr;
-
-		std::string retString = getXPath(parent, childParent);
-		if (retString == nullptr)
-			return nullptr;
-		if (retString != "")
-			retString = retString + "/";
-
-		return retString + child->getNodeName();
-	}*/
-
-	// Inheritance helpers
+	// XML Inheritance helpers
 	DOMNode* GetDirectRoot(DOMNode* node);
 	DOMNode* GetTemplateRoot(DOMNode* node);
 	DOMNode* GetRoot(DOMNode* node, std::string childName);
 
-	// Utils
+	// XML Debug
 	void treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f);
 	void printTree();
 
 	// XSD Schema
 	void loadXsdFile(std::string filename);
-	int getXsdErrorCount();
+	hmi_uint64 getXsdErrorCount();
 
 private:
 	XercesDOMParser		*m_domParser;
@@ -56,6 +49,7 @@ private:
 	XmlParserErrorHandler *m_domErrorHandler;
 
 	void _treeAction(DOMNode* rootNode, int level, const std::function <void(DOMNode* node, int treeLevel)>& f);
+	DOMXPathResult* _executeXPathQuery(DOMNode* rootNode, std::string query, DOMXPathResult::ResultType resultType);
 };
 
 // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="wacSmall.xsd"

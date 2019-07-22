@@ -13,6 +13,9 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include <vector>
+#include <cstdint>
+#include <optional>
 
 #include <xercesc/util/PlatformUtils.hpp>
 #include "xercesc/parsers/AbstractDOMParser.hpp"
@@ -28,11 +31,12 @@
 #include "xercesc/dom/DOMNamedNodeMap.hpp"
 #include "xercesc/dom/DOMAttr.hpp"
 #include "xercesc/sax/ErrorHandler.hpp"
-#include "xercesc/parsers/XercesDOMParser.hpp""
+#include "xercesc/parsers/XercesDOMParser.hpp"
 #include <xercesc/sax/SAXParseException.hpp>
 
 using namespace xercesc;
-
+typedef uint64_t hmi_uint64;
 #include "XmlParserErrorHandler.h"
+#include "XmlManager.h"
 
 #endif //PCH_H

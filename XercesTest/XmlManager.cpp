@@ -1,7 +1,8 @@
 #include "pch.h"
 #include "XmlManager.h"
 
-// test commit
+
+
 
 XmlManager::XmlManager()
 {
@@ -18,7 +19,6 @@ XmlManager::XmlManager()
 	}
 }
 
-
 XmlManager::~XmlManager()
 {
 	delete m_domParser;
@@ -30,6 +30,14 @@ XmlManager::~XmlManager()
 	XMLPlatformUtils::Terminate();
 }
 
+std::string XmlManager::ConvertXMLCh(const XMLCh* xmlChString)
+{
+	char* pTmpChar = XMLString::transcode(xmlChString);
+	std::string retString(pTmpChar);
+
+	delete pTmpChar;
+	return retString;
+}
 
 bool XmlManager::loadXmlFile(std::string filename)
 {
@@ -53,7 +61,7 @@ DOMNode* XmlManager::getDocumentRoot()
 }
 
 
-DOMNode* XmlManager::getFirstNamedChild(std::string nodeName)
+DOMNode* XmlManager::getFirstChildNamed(std::string nodeName)
 {
 	DOMNode* docRoot = getDocumentRoot();
 	DOMNode* retNode = nullptr;
@@ -79,12 +87,26 @@ DOMNode* XmlManager::getFirstNamedChild(std::string nodeName)
 	return retNode;
 }
 
-
-void XmlManager::treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f)
+std::optional<std::string> getXPath(DOMNode* parent, DOMNode* child)
 {
-	_treeAction(rootNode, 0, f);
-}
+	if (parent == nullptr || child == nullptr)
+		return std::nullopt;
 
+	if (child == parent)
+		return "";
+
+	DOMNode* childsParent = child->getParentNode();
+	if (childsParent == nullptr)
+		return std::nullopt;
+
+	auto retString = getXPath(parent, childsParent);
+	if (retString == std::nullopt)
+		return std::nullopt;
+	else if (retString == XmlManager::EMPTY_STRING)
+		retString = retString.value() + "/";
+
+	return retString;
+}
 
 void XmlManager::printTree()
 {
@@ -97,9 +119,10 @@ void XmlManager::printTree()
 		{
 			for (int i = 0; i < treeLevel; i++)
 				std::cout << " ";
-			char* xmlChNodeName = XMLString::transcode(node->getNodeName());
-			std::cout << xmlChNodeName << "\n";
-			delete xmlChNodeName;
+			//char* xmlChNodeName = XMLString::transcode(node->getNodeName());
+			std::string nodeName = XmlManager::ConvertXMLCh(((const XMLCh*)node->getNodeName()));
+			//std::cout << xmlChNodeName << "\n";
+			//delete xmlChNodeName;
 
 			count++;
 		}
@@ -118,6 +141,10 @@ void XmlManager::printTree()
 	std::cout << "###### Node count: " << count << " ## \n";
 }
 
+void XmlManager::treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f)
+{
+	_treeAction(rootNode, 0, f);
+}
 
 void XmlManager::_treeAction(DOMNode* rootNode, int level, const std::function <void(DOMNode* node, int treeLevel)>& f)
 {
@@ -129,7 +156,7 @@ void XmlManager::_treeAction(DOMNode* rootNode, int level, const std::function <
 	if (curNode == nullptr)
 		return;
 
-	int curChildCount = curNode->getChildNodes()->getLength();
+	XMLSize_t curChildCount = curNode->getChildNodes()->getLength();
 
 	f(curNode, level);
 
@@ -149,6 +176,55 @@ void XmlManager::_treeAction(DOMNode* rootNode, int level, const std::function <
 			//std::cout << "ignored whitespace\n";
 		curChild = curChild->getNextSibling();
 	}
+}
+
+DOMXPathResult* XmlManager::_executeXPathQuery(DOMNode* rootNode, std::string query, DOMXPathResult::ResultType resultType)
+{
+	if (rootNode == nullptr && m_xmlDocument != nullptr)
+		rootNode = (DOMNode*)m_xmlDocument->getDocumentElement();
+
+	DOMXPathResult* result = m_xmlDocument->evaluate(
+		XMLString::transcode(query.c_str()),
+		rootNode,
+		NULL,
+		resultType,
+		NULL);
+
+	return result;
+}
+
+std::vector<DOMNode*> XmlManager::executeXPathQuery(DOMNode* rootNode, std::string query)
+{
+	DOMXPathResult* result = _executeXPathQuery(rootNode, query, DOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE);
+	DOMXPathResult::ResultType rt = result->getResultType();
+	std::vector<DOMNode*> resultVector;
+
+	if (rt == DOMXPathResult::ResultType::ORDERED_NODE_SNAPSHOT_TYPE)
+	{
+		XMLSize_t resultLength = result->getSnapshotLength();
+		for (XMLSize_t i = 0; i < resultLength; i++)
+		{
+			result->snapshotItem(i);
+			resultVector.push_back(result->getNodeValue());
+			std::cout << XMLString::transcode(result->getNodeValue()->getNodeName()) << "\n";
+		}
+	}
+
+	return resultVector;
+}
+
+DOMNode* XmlManager::executeXPathQuery_singleReturn(DOMNode* rootNode, std::string query)
+{
+	DOMXPathResult* result = _executeXPathQuery(rootNode, query, DOMXPathResult::ResultType::FIRST_ORDERED_NODE_TYPE);
+	DOMXPathResult::ResultType rt = result->getResultType();
+
+	if (rt == DOMXPathResult::ResultType::FIRST_ORDERED_NODE_TYPE)
+	{
+		std::cout << XMLString::transcode(result->getNodeValue()->getNodeName()) << "\n";
+		return result->getNodeValue();
+	}
+
+	return nullptr;
 }
 
 
@@ -184,11 +260,42 @@ DOMNode* XmlManager::GetRoot(DOMNode* node, std::string childName) {
 	return nullptr;
 }
 
-int XmlManager::getXsdErrorCount()
+//std::optional<std::string> XmlManager::getTemplateText(DOMNode* node, std::string templateName)
+//{
+//	if (node != nullptr)
+//	{
+//		DOMNode* curChildNode = node->getFirstChild();
+//
+//		while (curChildNode != nullptr)
+//		{
+//			std::string curChildNodeName = XmlManager::ConvertXMLCh( curChildNode->getNodeName() );
+//		}
+//	}
+//}
+//private String GetTemplateText(Node node, String template) {
+//	if (node != null)
+//	{
+//		Node curChildNode = node.getFirstChild();
+//
+//		while (curChildNode != null)
+//		{
+//			String curChildNodeName = curChildNode.getNodeName();
+//			if (curChildNodeName != null && curChildNodeName.equals(template))
+//			{
+//				return curChildNode.getTextContent();
+//			}
+//
+//			curChildNode = curChildNode.getNextSibling();
+//		}
+//	}
+//
+//	return null;
+//}
+
+
+hmi_uint64 XmlManager::getXsdErrorCount()
 {
-	int errorCount = m_domParser->getErrorCount();
-	auto eh = m_domParser->getErrorHandler();
-	return errorCount;
+	return m_domParser->getErrorCount();
 }
 
 void XmlManager::loadXsdFile(std::string filename)
