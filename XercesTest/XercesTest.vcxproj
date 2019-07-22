@@ -162,6 +162,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="XmlManager.h" />
     <ClInclude Include="XmlParserErrorHandler.h" />
+    <ClInclude Include="XmlString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -173,6 +174,7 @@
     <ClCompile Include="XercesTest.cpp" />
     <ClCompile Include="XmlManager.cpp" />
     <ClCompile Include="XmlParserErrorHandler.cpp" />
+    <ClCompile Include="XmlString.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

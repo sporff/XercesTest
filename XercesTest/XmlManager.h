@@ -11,10 +11,6 @@ public:
 	XmlManager();
 	~XmlManager();
 
-	// Utils
-	std::string convertString(XMLCh* xmlString);
-	XMLCh convertString(std::string xmlString);
-
 	// XML file
 	bool loadXmlFile(std::string filename);
 	void closeXmlFile();

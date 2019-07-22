@@ -31,26 +31,6 @@ XmlManager::~XmlManager()
 }
 
 
-std::string XmlManager::convertString(XMLCh* xmlString)
-{
-	char* xmlChar = XMLString::transcode(xmlString);
-	std::string stdString(xmlChar);
-	XMLString::release(&xmlChar);
-
-	return stdString;
-}
-
-//XMLCh XmlManager::convertString(std::string xmlString)
-//{
-//	/*char* xmlChar = XMLString::transcode(xmlString);
-//	std::string stdString(xmlChar);
-//	XMLString::release(&xmlChar);
-//
-//	return stdString;*/
-//	return nullptr;
-//}
-
-
 bool XmlManager::loadXmlFile(std::string filename)
 {
 	m_domParser->parse(filename.c_str());
@@ -63,6 +43,7 @@ void XmlManager::closeXmlFile()
 {
 	m_domParser->resetDocumentPool();
 }
+
 DOMNode* XmlManager::getDocumentRoot()
 {
 	if (m_xmlDocument != nullptr)
@@ -75,23 +56,27 @@ DOMNode* XmlManager::getDocumentRoot()
 DOMNode* XmlManager::getFirstNamedChild(std::string nodeName)
 {
 	DOMNode* docRoot = getDocumentRoot();
+	DOMNode* retNode = nullptr;
 
 	if (docRoot != nullptr)
 	{
 		DOMNode* curChild		= docRoot->getFirstChild();
-		XMLCh* xmlchNodeName	= XMLString::transcode(nodeName.c_str());	// convert input string to XMLCh
+		XMLCh* xmlChNodeName	= XMLString::transcode(nodeName.c_str());	// convert input string to XMLCh
 
 		while (curChild != nullptr)
 		{
-			if (XMLString::equals(xmlchNodeName, curChild->getNodeName()))
+			if (XMLString::equals(xmlChNodeName, curChild->getNodeName()))
 			{
-				return curChild;
+				retNode = curChild;
+				break;
 			}
 			curChild = curChild->getNextSibling();
 		}
+
+		delete xmlChNodeName;
 	}
 
-	return nullptr;
+	return retNode;
 }
 
 
@@ -112,14 +97,20 @@ void XmlManager::printTree()
 		{
 			for (int i = 0; i < treeLevel; i++)
 				std::cout << " ";
-			std::cout << XMLString::transcode(node->getNodeName()) << "\n";
+			char* xmlChNodeName = XMLString::transcode(node->getNodeName());
+			std::cout << xmlChNodeName << "\n";
+			delete xmlChNodeName;
+
 			count++;
 		}
 		else if (node->getNodeType() == DOMNode::NodeType::TEXT_NODE)
 		{
 			for (int i = 0; i < treeLevel; i++)
 				std::cout << " ";
-			std::cout << "[" << XMLString::transcode(node->getNodeValue()) << "]" << std::endl;
+			char* xmlChNodeName = XMLString::transcode(node->getNodeName());
+			std::cout << "[" << xmlChNodeName << "]" << std::endl;
+			delete xmlChNodeName;
+
 			count++;
 		}
 	});
@@ -179,7 +170,9 @@ DOMNode* XmlManager::GetRoot(DOMNode* node, std::string childName) {
 
 			while (currentChild != nullptr)
 			{
-				std::string currentChildName = XMLString::transcode(currentChild->getNodeName());
+				char* xmlChNodeName = XMLString::transcode(currentChild->getNodeName());
+				std::string currentChildName = xmlChNodeName;
+				delete xmlChNodeName;
 				if (currentChildName == childName) {
 					return currentNode;
 				}
@@ -190,8 +183,6 @@ DOMNode* XmlManager::GetRoot(DOMNode* node, std::string childName) {
 	}
 	return nullptr;
 }
-
-
 
 int XmlManager::getXsdErrorCount()
 {
