@@ -12,8 +12,10 @@ private:
 	void reportParseException(const SAXParseException& ex)
 	{
 		char* msg = XMLString::transcode(ex.getMessage());
-		fprintf(stderr, "at line %llu column %llu, %s\n",
-			ex.getColumnNumber(), ex.getLineNumber(), msg);
+
+		//fprintf(stderr, "at line %llu column %llu, %s\n", ex.getLineNumber(), ex.getColumnNumber(), msg);
+		std::cout << "at line " << ex.getLineNumber() << " column " << ex.getColumnNumber() << ", " << msg << "\n";
+		
 		XMLString::release(&msg);
 	}
 
