@@ -16,16 +16,16 @@ public:
 
 	void treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f);
 	void printTree();
+
+	void loadXsdFile(std::string filename);
 	int getXsdErrorCount();
 
-	void tempSetup(XmlParserErrorHandler& errorHandler);
-
 private:
-	DOMImplementation	*m_domImpl;
 	XercesDOMParser		*m_domParser;
-	DOMConfiguration	*m_domConfig;
 	DOMDocument			*m_xmlDocument;
+	XmlParserErrorHandler *m_domErrorHandler;
 
 	void _treeAction(DOMNode* rootNode, int level, const std::function <void(DOMNode* node, int treeLevel)>& f);
 };
 
+// xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="wacSmall.xsd"

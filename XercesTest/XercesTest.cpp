@@ -12,9 +12,7 @@ int main()
 {
 	XmlManager xmlManager;
 
-	XmlParserErrorHandler parser;
-	xmlManager.tempSetup(parser);
-
+	xmlManager.loadXsdFile("C:/xml/wacSmall.xsd");
 	xmlManager.loadXmlFile("C:/xml/wacSmall.xml");
 
 	DOMNode* docRoot = xmlManager.getDocumentRoot();
