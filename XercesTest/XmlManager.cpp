@@ -10,32 +10,12 @@ XmlManager::XmlManager()
 		XMLPlatformUtils::Initialize();
 		m_xmlDocument	= nullptr;
 		m_domParser = new XercesDOMParser();
-
 		m_domErrorHandler = new XmlParserErrorHandler();
-
 	}
 	catch (...)
 	{
 		std::cout << "Error initializing XML library.";
 	}
-	
-	/*m_domConfig->setParameter(XMLUni::fgDOMElementContentWhitespace, false);
-	m_domConfig->setParameter(XMLUni::fgXercesSchema, true);
-	m_domConfig->setParameter(XMLUni::fgXercesSchemaFullChecking, true);
-	m_domConfig->setParameter(XMLUni::fgDOMNamespaces, true);
-	m_domConfig->setParameter(XMLUni::fgDOMDisallowDoctype, false);
-	m_domConfig->setParameter(XMLUni::fgXercesHandleMultipleImports, true);*/
-	//m_domParser->setValidationScheme(XercesDOMParser::Val_Auto);
-	//m_domParser->setDoNamespaces(true);
-	//m_domParser->setDoSchema(true);
-	////m_domParser->setLoadExternalDTD(false);
-	//m_domParser->setIncludeIgnorableWhitespace(true);
-	//m_domParser->setValidationConstraintFatal(true);
-
-	//m_domParser.set1.setDoNamespaces(tr ue);
-	//m_domParser.setDoSchema(true);
-	//m_domParser.setValidationSchemaFullChecking(true);
-	//m_domConfig->setParameter(XMLUni::fgDOMWRTWhitespaceInElementContent, false);
 }
 
 
@@ -53,10 +33,6 @@ XmlManager::~XmlManager()
 
 void XmlManager::loadXsdFile(std::string filename)
 {
-	//m_domParser->setErrorHandler(&errorHandler);
-	//DOMErrorHandler* errHandler = new DOMErrorHandler();
-	//m_domParser->setErrorHandler(errHandler);
-	
 	if (m_domParser->loadGrammar(filename.c_str(), Grammar::SchemaGrammarType) == nullptr)
 		std::cout << "Couldn't load schema" << std::endl;
 	else {
@@ -76,7 +52,6 @@ void XmlManager::loadXsdFile(std::string filename)
 
 bool XmlManager::loadXmlFile(std::string filename)
 {
-	//m_xmlDocument = m_domParser->parseURI( filename.c_str() );
 	m_domParser->parse(filename.c_str());
 	m_xmlDocument = m_domParser->getDocument();
 	return false;
