@@ -5,18 +5,52 @@ using namespace xercesc;
 class XmlManager
 {
 public:
+	inline static const std::string NODENAME_PARENTTEMPLATE = "ParentTemplate";
+	inline static const std::string NODENAME_TEMPLATENAME = "TemplateName";
+
 	XmlManager();
 	~XmlManager();
 
+	// Utils
+	std::string convertString(XMLCh* xmlString);
+	XMLCh convertString(std::string xmlString);
+
+	// XML file
 	bool loadXmlFile(std::string filename);
 	void closeXmlFile();
 
+	// Document helpers
 	DOMNode* getDocumentRoot();
 	DOMNode* getFirstNamedChild(std::string nodeName);
+	
+	
+	/*std::string getXPath(DOMNode* parent, DOMNode* child) {
+		if (child == parent)
+			return "";
 
+		DOMNode* childParent = child->getParentNode();
+		if (childParent == nullptr)
+			return nullptr;
+
+		std::string retString = getXPath(parent, childParent);
+		if (retString == nullptr)
+			return nullptr;
+		if (retString != "")
+			retString = retString + "/";
+
+		return retString + child->getNodeName();
+	}*/
+
+	// Inheritance helpers
+	DOMNode* GetDirectRoot(DOMNode* node);
+	DOMNode* GetTemplateRoot(DOMNode* node);
+	DOMNode* GetRoot(DOMNode* node, std::string childName);
+
+	// Utils
 	void treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f);
 	void printTree();
 
+	// XSD Schema
 	void loadXsdFile(std::string filename);
 	int getXsdErrorCount();
 

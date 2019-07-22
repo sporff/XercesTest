@@ -2,7 +2,6 @@
 #include "XmlManager.h"
 
 // test commit
-using namespace xercesc;
 
 XmlManager::XmlManager()
 {
@@ -32,23 +31,24 @@ XmlManager::~XmlManager()
 }
 
 
-void XmlManager::loadXsdFile(std::string filename)
+std::string XmlManager::convertString(XMLCh* xmlString)
 {
-	if (m_domParser->loadGrammar(filename.c_str(), Grammar::SchemaGrammarType) == nullptr)
-		std::cout << "Couldn't load schema" << std::endl;
-	else {
-		std::cout << "Schema loaded!\n";
-	}
-	m_domParser->setErrorHandler(m_domErrorHandler);
-	m_domParser->setValidationScheme(XercesDOMParser::Val_Auto);
-	m_domParser->setDoNamespaces(true);
-	m_domParser->setDoSchema(true);
-	m_domParser->setIncludeIgnorableWhitespace(false);
-	m_domParser->setValidationConstraintFatal(false);
-	m_domParser->setHandleMultipleImports(true);
-	m_domParser->setValidationSchemaFullChecking(true);
-	m_domParser->setExternalNoNamespaceSchemaLocation(filename.c_str());
+	char* xmlChar = XMLString::transcode(xmlString);
+	std::string stdString(xmlChar);
+	XMLString::release(&xmlChar);
+
+	return stdString;
 }
+
+//XMLCh XmlManager::convertString(std::string xmlString)
+//{
+//	/*char* xmlChar = XMLString::transcode(xmlString);
+//	std::string stdString(xmlChar);
+//	XMLString::release(&xmlChar);
+//
+//	return stdString;*/
+//	return nullptr;
+//}
 
 
 bool XmlManager::loadXmlFile(std::string filename)
@@ -97,9 +97,7 @@ DOMNode* XmlManager::getFirstNamedChild(std::string nodeName)
 
 void XmlManager::treeAction(DOMNode* rootNode, const std::function <void(DOMNode* node, int treeLevel)>& f)
 {
-	int level = 0;
-
-	_treeAction(rootNode, level, f);
+	_treeAction(rootNode, 0, f);
 }
 
 
@@ -137,7 +135,10 @@ void XmlManager::_treeAction(DOMNode* rootNode, int level, const std::function <
 	if (curNode == nullptr)
 		curNode = getDocumentRoot();
 
-	int curChildCount = rootNode->getChildNodes()->getLength();
+	if (curNode == nullptr)
+		return;
+
+	int curChildCount = curNode->getChildNodes()->getLength();
 
 	f(curNode, level);
 
@@ -155,15 +156,64 @@ void XmlManager::_treeAction(DOMNode* rootNode, int level, const std::function <
 		}
 		//else
 			//std::cout << "ignored whitespace\n";
-
-
 		curChild = curChild->getNextSibling();
 	}
 }
+
+
+DOMNode* XmlManager::GetDirectRoot(DOMNode* node)
+{
+	return GetRoot(node, NODENAME_PARENTTEMPLATE);
+}
+DOMNode* XmlManager::GetTemplateRoot(DOMNode* node)
+{
+	return GetRoot(node, NODENAME_TEMPLATENAME);
+}
+
+DOMNode* XmlManager::GetRoot(DOMNode* node, std::string childName) {
+	if (node != nullptr) {
+		DOMNode* currentNode = node;
+
+		while (currentNode != nullptr) {
+			DOMNode* currentChild = currentNode->getFirstChild();
+
+			while (currentChild != nullptr)
+			{
+				std::string currentChildName = XMLString::transcode(currentChild->getNodeName());
+				if (currentChildName == childName) {
+					return currentNode;
+				}
+				currentChild = currentChild->getNextSibling();
+			}
+			currentNode = currentNode->getParentNode();
+		}
+	}
+	return nullptr;
+}
+
+
 
 int XmlManager::getXsdErrorCount()
 {
 	int errorCount = m_domParser->getErrorCount();
 	auto eh = m_domParser->getErrorHandler();
 	return errorCount;
+}
+
+void XmlManager::loadXsdFile(std::string filename)
+{
+	if (m_domParser->loadGrammar(filename.c_str(), Grammar::SchemaGrammarType) == nullptr)
+		std::cout << "Couldn't load schema" << std::endl;
+	else {
+		std::cout << "Schema loaded!\n";
+	}
+	m_domParser->setErrorHandler(m_domErrorHandler);
+	m_domParser->setValidationScheme(XercesDOMParser::Val_Auto);
+	m_domParser->setDoNamespaces(true);
+	m_domParser->setDoSchema(true);
+	m_domParser->setIncludeIgnorableWhitespace(false);
+	m_domParser->setValidationConstraintFatal(false);
+	m_domParser->setHandleMultipleImports(true);
+	m_domParser->setValidationSchemaFullChecking(true);
+	m_domParser->setExternalNoNamespaceSchemaLocation(filename.c_str());
 }
