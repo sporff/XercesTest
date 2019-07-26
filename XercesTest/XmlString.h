@@ -5,6 +5,8 @@ class XmlString
 	XMLCh* m_xmlChString;
 public:
 	XmlString();
+	XmlString(std::string str);
+	XmlString(XMLCh* str);
 	~XmlString();
 
 	void reset();
@@ -13,6 +15,6 @@ public:
 	void setString(XMLCh* str);
 
 	std::string getStdString();
-	std::string getXmlChString();
+	XMLCh* getXmlChString();
 };
 

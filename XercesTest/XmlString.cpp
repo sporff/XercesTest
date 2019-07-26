@@ -8,6 +8,16 @@ XmlString::XmlString()
 {
 }
 
+XmlString::XmlString(std::string str)
+{
+	setString(str);
+}
+
+XmlString::XmlString(XMLCh* str)
+{
+	setString(str);
+}
+
 
 XmlString::~XmlString()
 {
@@ -17,29 +27,35 @@ XmlString::~XmlString()
 void XmlString::reset()
 {
 	if (m_xmlChString != nullptr)
-		delete m_xmlChString;
+		XMLString::release(&m_xmlChString);
+	
 	m_stdString = "";
 }
 
 
 void XmlString::setString(std::string str)
 {
+	reset();
+
 	m_stdString = str;
 	m_xmlChString = XMLString::transcode(str.c_str());
 }
 void XmlString::setString(XMLCh* str)
 {
+	reset();
+
 	char* transcodeStr = XMLString::transcode(str);
 	m_stdString = std::string(transcodeStr);
-
 	delete transcodeStr;
+
+	XMLString::copyString(m_xmlChString, str);	// don't reference the string passed in
 }
 
 std::string XmlString::getStdString()
 {
-	return "";
+	return m_stdString;
 }
-std::string XmlString::getXmlChString()
+XMLCh* XmlString::getXmlChString()
 {
-	return "";
+	return m_xmlChString;
 }

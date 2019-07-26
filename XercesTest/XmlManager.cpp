@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "XmlManager.h"
 
-
-
+const std::string XmlManager::EMPTY_STRING = "";
+const std::string XmlManager::NODENAME_PARENTTEMPLATE = "ParentTemplate";
+const std::string XmlManager::NODENAME_TEMPLATENAME = "TemplateName";
 
 XmlManager::XmlManager()
 {
@@ -11,6 +12,7 @@ XmlManager::XmlManager()
 		XMLPlatformUtils::Initialize();
 		m_xmlDocument	= nullptr;
 		m_domParser = new XercesDOMParser();
+		m_xsdParser = new XSDDOMParser();
 		m_domErrorHandler = new XmlParserErrorHandler();
 	}
 	catch (...)
@@ -23,6 +25,9 @@ XmlManager::~XmlManager()
 {
 	delete m_domParser;
 	m_domParser = nullptr;
+
+	delete m_xsdParser;
+	m_xsdParser = nullptr;
 
 	delete m_domErrorHandler;
 	m_domErrorHandler = nullptr;
@@ -46,7 +51,6 @@ bool XmlManager::loadXmlFile(std::string filename)
 	return false;
 }
 
-
 void XmlManager::closeXmlFile()
 {
 	m_domParser->resetDocumentPool();
@@ -61,14 +65,13 @@ DOMNode* XmlManager::getDocumentRoot()
 }
 
 
-DOMNode* XmlManager::getFirstChildNamed(std::string nodeName)
+DOMNode* XmlManager::getFirstChildNamed(DOMNode* parentNode, std::string nodeName)
 {
-	DOMNode* docRoot = getDocumentRoot();
 	DOMNode* retNode = nullptr;
 
-	if (docRoot != nullptr)
+	if (parentNode != nullptr)
 	{
-		DOMNode* curChild		= docRoot->getFirstChild();
+		DOMNode* curChild		= parentNode->getFirstChild();
 		XMLCh* xmlChNodeName	= XMLString::transcode(nodeName.c_str());	// convert input string to XMLCh
 
 		while (curChild != nullptr)
@@ -81,32 +84,32 @@ DOMNode* XmlManager::getFirstChildNamed(std::string nodeName)
 			curChild = curChild->getNextSibling();
 		}
 
-		delete xmlChNodeName;
+		XMLString::release(&xmlChNodeName);
 	}
 
 	return retNode;
 }
 
-std::optional<std::string> getXPath(DOMNode* parent, DOMNode* child)
-{
-	if (parent == nullptr || child == nullptr)
-		return std::nullopt;
-
-	if (child == parent)
-		return "";
-
-	DOMNode* childsParent = child->getParentNode();
-	if (childsParent == nullptr)
-		return std::nullopt;
-
-	auto retString = getXPath(parent, childsParent);
-	if (retString == std::nullopt)
-		return std::nullopt;
-	else if (retString == XmlManager::EMPTY_STRING)
-		retString = retString.value() + "/";
-
-	return retString;
-}
+//std::optional<std::string> getXPath(DOMNode* parent, DOMNode* child)
+//{
+//	if (parent == nullptr || child == nullptr)
+//		return std::nullopt;
+//
+//	if (child == parent)
+//		return "";
+//
+//	DOMNode* childsParent = child->getParentNode();
+//	if (childsParent == nullptr)
+//		return std::nullopt;
+//
+//	auto retString = getXPath(parent, childsParent);
+//	if (retString == std::nullopt)
+//		return std::nullopt;
+//	else if (retString == XmlManager::EMPTY_STRING)
+//		retString = retString.value() + "/";
+//
+//	return retString;
+//}
 
 void XmlManager::printTree()
 {
@@ -314,4 +317,64 @@ void XmlManager::loadXsdFile(std::string filename)
 	m_domParser->setHandleMultipleImports(true);
 	m_domParser->setValidationSchemaFullChecking(true);
 	m_domParser->setExternalNoNamespaceSchemaLocation(filename.c_str());
+
+	m_xsdParser->parse(filename.c_str());
+	m_xsdDocument = m_xsdParser->getDocument();
+	DOMNode* n = m_xsdDocument->getFirstChild();
+	std::cout << "Root Children: " << n->getChildNodes()->getLength() << std::endl;
+
+	DOMNode* WACnode = this->xsd_getFirstChildNamed(n, "WAC");
+	DOMNode* SiteInfonode = this->xsd_getFirstChildNamed(WACnode, "SiteInfo");
+	//DOMNode* c = n->getFirstChild()->getNextSibling();
+	//DOMNode* attr = c->getAttributes()->getNamedItem(XMLString::transcode("name"));
+
+	SiteInfonode->getAttributes()->getNamedItem(XmlString("name").getXmlChString()/*XMLString::transcode("name")*/);
+	std::cout << "Name: " << this->ConvertXMLCh(SiteInfonode->getNodeName()) << std::endl;
+
+	//if (attr)
+	//	std::cout << "Name: " << this->ConvertXMLCh(attr->getTextContent()) << std::endl;
+
+	//std::cout << "test\n";
+
+	exit(0);
+}
+
+
+DOMNode* XmlManager::xsd_getFirstChildNamed(DOMNode* parentXsdNode, std::string nodeName)
+{
+	DOMNode* retNode = nullptr;
+
+	if (parentXsdNode != nullptr)
+	{
+		DOMNode* curChild = parentXsdNode->getFirstChild();
+		XmlString nodeName(nodeName);
+		XmlString attrName("name");
+
+		while (curChild != nullptr)
+		{
+			DOMNode* attrNode = curChild->getAttributes()->getNamedItem(attrName.getXmlChString());
+			if (attrNode != nullptr)
+			{
+				const XMLCh* attrValue = attrNode->getTextContent();
+				if (attrValue != nullptr && XMLString::equals(nodeName.getXmlChString(), attrValue))
+				{
+					retNode = curChild;
+					break;
+				}
+			}
+			curChild = curChild->getNextSibling();
+		}
+	}
+	return retNode;
+}
+
+std::string XmlManager::xsd_getAttribute(DOMNode* xsdNode, std::string attrName)
+{
+	XMLCh* xmlChAttrName = XmlString(attrName).getXmlChString();
+	auto x = xsdNode->getAttributes()->getNamedItem(xmlChAttrName);
+	if (xsdNode->getAttributes()->getNamedItem(xmlChAttrName) != nullptr)
+	{
+
+	}
+	return "";
 }

@@ -32,10 +32,12 @@
 #include "xercesc/dom/DOMAttr.hpp"
 #include "xercesc/sax/ErrorHandler.hpp"
 #include "xercesc/parsers/XercesDOMParser.hpp"
+#include "xercesc/validators/schema/XSDDOMParser.hpp"
 #include <xercesc/sax/SAXParseException.hpp>
 
 using namespace xercesc;
 typedef uint64_t hmi_uint64;
+#include "XmlString.h"
 #include "XmlParserErrorHandler.h"
 #include "XmlManager.h"
 

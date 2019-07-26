@@ -15,9 +15,9 @@ int main()
 	xmlManager.loadXmlFile("C:/Users/dgibson/wkspaces/CortexClientSpecific-OPEX-Workstation7/config/xml/WS07_Show_Combined_localTesting.XML");
 
 	DOMNode* docRoot = xmlManager.getDocumentRoot();
-	DOMNode* wuisNode = xmlManager.getFirstChildNamed("WUIs");
+	DOMNode* wuisNode = xmlManager.getFirstChildNamed(docRoot, "WUIs");
 
-	DOMNode* aisleControllersNode = xmlManager.getFirstChildNamed("AisleControllers");
+	DOMNode* aisleControllersNode = xmlManager.getFirstChildNamed(docRoot, "AisleControllers");
 
 	//xmlManager.printTree();
 	std::cout << "Error count: " << xmlManager.getXsdErrorCount() << "\n";

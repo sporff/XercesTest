@@ -5,9 +5,12 @@ using namespace xercesc;
 class XmlManager
 {
 public:
-	inline static const std::string EMPTY_STRING = "";
+	/*inline static const std::string EMPTY_STRING = "";
 	inline static const std::string NODENAME_PARENTTEMPLATE = "ParentTemplate";
-	inline static const std::string NODENAME_TEMPLATENAME = "TemplateName";
+	inline static const std::string NODENAME_TEMPLATENAME = "TemplateName";*/
+	static const std::string EMPTY_STRING;
+	static const std::string NODENAME_PARENTTEMPLATE;
+	static const std::string NODENAME_TEMPLATENAME;
 
 	XmlManager();
 	~XmlManager();
@@ -22,9 +25,9 @@ public:
 
 	// XML Document
 	DOMNode* getDocumentRoot();
-	DOMNode* getFirstChildNamed(std::string nodeName);
+	DOMNode* getFirstChildNamed(DOMNode* parentNode, std::string nodeName);
 	std::string getXPath(DOMNode* parent, DOMNode* child);
-	std::optional<std::string> getTemplateText(DOMNode* node, std::string templateName);
+	//std::optional<std::string> getTemplateText(DOMNode* node, std::string templateName);
 
 	// XML XPath
 	std::vector<DOMNode*> executeXPathQuery(DOMNode* rootNode, std::string query);
@@ -42,11 +45,16 @@ public:
 	// XSD Schema
 	void loadXsdFile(std::string filename);
 	hmi_uint64 getXsdErrorCount();
+	DOMNode* xsd_getFirstChildNamed(DOMNode* parentNode, std::string nodeName);
+	std::string xsd_getAttribute(DOMNode* xsdNode, std::string attrName);
 
 private:
-	XercesDOMParser		*m_domParser;
-	DOMDocument			*m_xmlDocument;
-	XmlParserErrorHandler *m_domErrorHandler;
+	XercesDOMParser			*m_domParser;
+	DOMDocument				*m_xmlDocument;
+	XmlParserErrorHandler	*m_domErrorHandler;
+
+	XSDDOMParser			*m_xsdParser;
+	DOMDocument				*m_xsdDocument;
 
 	void _treeAction(DOMNode* rootNode, int level, const std::function <void(DOMNode* node, int treeLevel)>& f);
 	DOMXPathResult* _executeXPathQuery(DOMNode* rootNode, std::string query, DOMXPathResult::ResultType resultType);
